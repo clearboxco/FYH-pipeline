@@ -6,8 +6,8 @@ if __name__ == "__main__":
     import os
 
     aws_bucket=os.environ['AWS_RE_BUCKET']
-    aws_key=os.environ['AWS_RE_BUCKET_KEY']
-    aws_secret=os.environ['AWS_RE_BUCKET_SECRET']
+    aws_key=os.environ['AWS_ADMIN_KEY']
+    aws_secret=os.environ['AWS_ADMIN_SECRET']
 
     scraper = RedfinScraper()
 
