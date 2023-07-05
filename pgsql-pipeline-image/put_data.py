@@ -1,21 +1,16 @@
 # IMPORTS
 import os
 import sys
-import time
 
 import pandas as pd
 import numpy as np
 
 from sqlalchemy import URL,create_engine,text
 
-from config import USER,PASS,ENDPOINT,PORT,DBNAME
+from config import USER,PASS,ENDPOINT,PORT,DBNAME,BUCKET,KEY,SECRET
 
 if __name__=="__main__":
     # STEP 1: IMPORT S3 PARQUET DATA
-    
-    aws_bucket=os.environ['AWS_RE_BUCKET']
-    aws_key=os.environ['AWS_ADMIN_KEY']
-    aws_secret=os.environ['AWS_ADMIN_SECRET']
 
 
     ts= pd.to_datetime('now').replace(microsecond=0)
@@ -76,10 +71,10 @@ if __name__=="__main__":
     df_list=[]
     for st in states:
         try:
-            df = pd.read_parquet(path=aws_bucket+f"/{date}/{st}.parquet",storage_options={"key":aws_key,"secret":aws_secret})
+            df = pd.read_parquet(path=BUCKET+f"/{date}/{st}.parquet",storage_options={"key":KEY,"secret":SECRET})
             df_list.append(df)
         except:
-            raise Exception(f"Could not locate {aws_bucket}/{date}/{st}.parquet")
+            raise Exception(f"Could not locate {BUCKET}/{date}/{st}.parquet")
         
     df=pd.concat(df_list)
         
@@ -91,7 +86,7 @@ if __name__=="__main__":
 
     df=df[df['PROPERTY TYPE'].isin(prop_types)]
 
-    df=df.dropna(subset=['ADDRESS','CITY','STATE OR PROVINCE','ZIP OR POSTAL CODE','PROPERTY TYPE','PRICE','BEDS','BATHS','SQUARE FEET','YEAR BUILT','URL (SEE https://www.redfin.com/buy-a-home/comparative-market-analysis FOR INFO ON PRICING)'],axis=0).reset_index(drop=True)
+    df=df.dropna(subset=['ADDRESS','CITY','STATE OR PROVINCE','ZIP OR POSTAL CODE','PROPERTY TYPE','PRICE','BEDS','BATHS','SQUARE FEET','YEAR BUILT','URL (SEE https://www.redfin.com/buy-a-home/comparative-market-analysis FOR INFO ON PRICING)'],axis=0)
     
     #1C: Apply logical adjustments
     
@@ -149,8 +144,7 @@ if __name__=="__main__":
         
     df[sql_columns[7]]=df[sql_columns[7]].map(lambda x: extract_zip(x))
     
-    
-    
+    df=df.drop_duplicates(subset=[sql_columns[7],sql_columns[4]]).reset_index(drop=True)
     
     # STEP 2: CONNECT TO POSTGRESQL DB
     
@@ -170,23 +164,32 @@ if __name__=="__main__":
     
     engine = create_engine(url)
     
-    conn=engine.connect()
+    with engine.connect() as conn:
+        trans = conn.begin()
+        
+        try:
+        
+            with open('./scripts/backup_main.sql', 'r') as file:
+                backup_main_script = file.read()
+            
+            conn.execute(text(backup_main_script))
 
-    df.to_sql(sql_tables[2],conn,if_exists='replace',index=False,method='multi',chunksize=1000)
-
+            df.to_sql(sql_tables[2],conn,if_exists='append',index=False,method='multi',chunksize=1000)
+            
+            with open('./scripts/merge.sql', 'r') as file:
+                merge_script = file.read()
+                
+            conn.execute(text(merge_script))
+            
+            with open('./scripts/clear_main.sql','r') as file:
+                clear_main_script = file.read()
+                
+            conn.execute(text(clear_main_script))
+            
+            trans.commit()
+            
+        except:
+            trans.rollback()
+            raise Exception('Transaction failed. Changes rolled back.')
     
-    
-    
-    # Need to iterate through dataframe and insert values into houses
-    # Would prefer to keep the schema hidden in sql scripts and format the values in later
-    
-    
-
-
-    # STEP 3: JOIN DATA; ASSIGN IDS TO NEW RECORDS AND MOVE OLD TO BAKCUP
-
-    # STEP 4: PUSH NEW DATA TO POSTGRES DATABASE
-    
-    
-    conn.close()
     

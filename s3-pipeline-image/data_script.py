@@ -3,11 +3,7 @@ if __name__ == "__main__":
     from redfin_scraper import RedfinScraper
     import pandas as pd
     import time
-    import os
-
-    aws_bucket=os.environ['AWS_RE_BUCKET']
-    aws_key=os.environ['AWS_ADMIN_KEY']
-    aws_secret=os.environ['AWS_ADMIN_SECRET']
+    from config import BUCKET,SECRET,KEY
 
     scraper = RedfinScraper()
 
@@ -85,8 +81,8 @@ if __name__ == "__main__":
         df=scraper.get_data(f'D{i+1:03d}')
         try:
             df.insert(1, 'TimeStamp', time_stamp)
-            df.astype(str).to_parquet(f"{aws_bucket}/{ts_string}/{states[i]}.parquet",index=False,storage_options={"key":aws_key,
-                                                                                               "secret":aws_secret})
+            df.astype(str).to_parquet(f"{BUCKET}/{ts_string}/{states[i]}.parquet",index=False,storage_options={"key":KEY,
+                                                                                               "secret":SECRET})
         except:
             continue
         
