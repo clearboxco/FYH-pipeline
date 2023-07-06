@@ -77,14 +77,24 @@ if __name__ == "__main__":
 
     ts_string=str(time_stamp).split()[0]
 
+    df_list=[]
+    
     for i in range(len(states)):
         df=scraper.get_data(f'D{i+1:03d}')
         try:
             df.insert(1, 'TimeStamp', time_stamp)
+            df_list.append(df)
             df.astype(str).to_parquet(f"{BUCKET}/{ts_string}/{states[i]}.parquet",index=False,storage_options={"key":KEY,
                                                                                                "secret":SECRET})
         except:
             continue
+        
+    concat_df=pd.concat(df_list)
+    
+    concat_df.astype(str).to_parquet(f"{BUCKET}/all/{ts_string}.parquet",index=False,storage_options={"key":KEY,
+                                                                                               "secret":SECRET})
+        
+    
         
 
 

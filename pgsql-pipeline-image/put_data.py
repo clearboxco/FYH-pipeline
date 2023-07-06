@@ -12,71 +12,14 @@ from config import USER,PASS,ENDPOINT,PORT,DBNAME,BUCKET,KEY,SECRET
 if __name__=="__main__":
     # STEP 1: IMPORT S3 PARQUET DATA
 
-
     ts= pd.to_datetime('now').replace(microsecond=0)
     
     date=sys.argv[1] if len(sys.argv)>1 else str(ts).split()[0]
     
-    states=['AL', # NO NEVADA; NO DELAWARE; # NO PUERTO RICO; # NO VIRGIN ISLANDS
-            'NE',
-            'AK',
-            'AZ',
-            'NH',
-            'AR',
-            'NJ',
-            'CA',
-            'NM',
-            'CO',
-            'NY',
-            'CT',
-            'NC',
-            'ND',
-            'DC',
-            'OH',
-            'FL',
-            'OK',
-            'GA',
-            'OR',
-            'HI',
-            'PA',
-            'ID',
-            'IL',
-            'RI',
-            'IN',
-            'SC',
-            'IA',
-            'SD',
-            'KS',
-            'TN',
-            'KY',
-            'TX',
-            'LA',
-            'UT',
-            'ME',
-            'VT',
-            'MD',
-            'VA',
-            'MA',
-            'MI',
-            'WA',
-            'MN',
-            'WV',
-            'MS',
-            'WI',
-            'MO',
-            'WY',
-            'MT',
-            ]
-    
-    df_list=[]
-    for st in states:
-        try:
-            df = pd.read_parquet(path=BUCKET+f"/{date}/{st}.parquet",storage_options={"key":KEY,"secret":SECRET})
-            df_list.append(df)
-        except:
-            raise Exception(f"Could not locate {BUCKET}/{date}/{st}.parquet")
-        
-    df=pd.concat(df_list)
+    try:
+        df = pd.read_parquet(path=BUCKET+f"all/{date}.parquet",storage_options={"key":KEY,"secret":SECRET})
+    except:
+        raise Exception(f"Could not locate {BUCKET}/all/{date}.parquet")
         
     #1B: Applying conceptual adjustments
     
