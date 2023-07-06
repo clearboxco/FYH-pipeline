@@ -17,7 +17,7 @@ if __name__=="__main__":
     date=sys.argv[1] if len(sys.argv)>1 else str(ts).split()[0]
     
     try:
-        df = pd.read_parquet(path=BUCKET+f"all/{date}.parquet",storage_options={"key":KEY,"secret":SECRET})
+        df = pd.read_parquet(path=BUCKET+f"/all/{date}.parquet",storage_options={"key":KEY,"secret":SECRET})
     except:
         raise Exception(f"Could not locate {BUCKET}/all/{date}.parquet")
         
