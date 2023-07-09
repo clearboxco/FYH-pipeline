@@ -89,6 +89,9 @@ if __name__ == "__main__":
         except:
             continue
         
+    if len(df_list)<1:
+        raise Exception("Scrape failed. Try again.")
+        
     concat_df=pd.concat(df_list)
     
     concat_df.astype(str).to_parquet(f"{BUCKET}/all/{ts_string}.parquet",index=False,storage_options={"key":KEY,

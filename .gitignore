@@ -1,4 +1,4 @@
-*.sql
-*.txt
+*/scripts/*
 *.json
 *.pem
+db-config-files.txt
