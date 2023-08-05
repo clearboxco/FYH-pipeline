@@ -70,7 +70,7 @@ if __name__ == "__main__":
     
     
     # SYS ARGS
-    if len(sys.argv>0):
+    if len(sys.argv)>0:
         size_of_chunks=int(sys.argv[1])
     else:
         size_of_chunks=2600
