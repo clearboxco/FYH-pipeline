@@ -1,6 +1,5 @@
 if __name__ == "__main__":
 
-    from redfin_scraper import RedfinScraper
     import pandas as pd
     import time
     from config import BUCKET,SECRET,KEY
@@ -10,7 +9,6 @@ if __name__ == "__main__":
     import requests
     import io
     import csv
-    import multiprocessing
     import itertools
     import json
     import sys
