@@ -2,3 +2,4 @@
 *.json
 *.pem
 db-config-files.txt
+*.venv

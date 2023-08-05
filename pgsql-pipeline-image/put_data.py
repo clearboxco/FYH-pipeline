@@ -124,10 +124,15 @@ if __name__=="__main__":
                 
             conn.execute(text(merge_script))
             
-            with open('./scripts/clear_main.sql','r') as file:
-                clear_main_script = file.read()
+            with open('./scripts/pool.sql', 'r') as file:
+                pool_script = file.read()
                 
-            conn.execute(text(clear_main_script))
+            conn.execute(text(pool_script))
+                        
+            with open('./scripts/clear_main.sql', 'r') as file:
+                clear_script = file.read()
+                
+            conn.execute(text(clear_script))
             
             trans.commit()
             

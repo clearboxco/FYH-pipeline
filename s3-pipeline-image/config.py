@@ -1,5 +1,5 @@
 import os
 
-BUCKET=os.environ['AWS_RE_BUCKET']
+BUCKET='real-estate-data-bucket'
 KEY=os.environ['AWS_ADMIN_KEY']
 SECRET=os.environ['AWS_ADMIN_SECRET']
