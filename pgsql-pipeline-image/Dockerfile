@@ -8,6 +8,6 @@ COPY scripts scripts
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-ENTRYPOINT ["python"]
+ENTRYPOINT ["python","put_data.py"]
 
-CMD ["put_data.py"]
+CMD []

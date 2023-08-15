@@ -123,6 +123,16 @@ if __name__=="__main__":
                 merge_script = file.read()
                 
             conn.execute(text(merge_script))
+                
+            trans.commit()
+        
+        except:
+            trans.rollback()
+            raise Exception('Part 1 failed. Changes rolled back.')
+        
+        trans = conn.begin()
+        
+        try:
             
             with open('./scripts/pool.sql', 'r') as file:
                 pool_script = file.read()
@@ -138,6 +148,6 @@ if __name__=="__main__":
             
         except:
             trans.rollback()
-            raise Exception('Transaction failed. Changes rolled back.')
+            raise Exception('Part 2 failed. Changes rolled back.')
     
     

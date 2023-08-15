@@ -48,18 +48,21 @@ if __name__ == "__main__":
 
         return req
 
-    def set_dataframe(api_responses:list[requests.Response]):
+    def set_dataframe(api_responses:list[tuple[dict,requests.Response]]):
         df_list=[]
 
         for link,response in api_responses:
-            csv_stream = io.StringIO(response.content.decode('utf-8'))
-            reader = csv.DictReader(csv_stream)
-            df=pd.DataFrame(reader)
-            df_list.append(df)
+            try:
+                csv_stream = io.StringIO(response.content.decode('utf-8'))
+                reader = csv.DictReader(csv_stream)
+                df=pd.DataFrame(reader)
+                df_list.append(df)
+            except:
+                continue
 
         return df_list
     
-    def core(links:list[dict]):
+    def core(links:list[dict]) -> list[tuple[dict,requests.Response]]:
         responses=threaded_request(get_API_response,links)
         return responses
     
@@ -70,7 +73,7 @@ if __name__ == "__main__":
     
     
     # SYS ARGS
-    if len(sys.argv)>0:
+    if len(sys.argv)>1:
         size_of_chunks=int(sys.argv[1])
     else:
         size_of_chunks=2600
@@ -90,7 +93,7 @@ if __name__ == "__main__":
         
         
     #PREPARING JSON DATA 
-    master_file=(list(itertools.chain.from_iterable(inputs))) # Concat list of dicts
+    master_file=(list(itertools.chain.from_iterable(inputs))) # Concat list of lists
 
     split_master_file=split_chunks_of_size_n(master_file,size_of_chunks)
     
@@ -114,8 +117,11 @@ if __name__ == "__main__":
                 print(f"WARNING: {res.status_code} for {link['url']}")
                 
         df_list=set_dataframe(responses)
-        df=pd.concat(df_list,axis=0,ignore_index=True)
-        df_main_list.append(df)
+        try:
+            df=pd.concat(df_list,axis=0,ignore_index=True)
+            df_main_list.append(df)
+        except:
+            continue
         
         tic=time.perf_counter()
         
@@ -127,8 +133,11 @@ if __name__ == "__main__":
         if idx!=(len(split_master_file)-1):
             time.sleep(300-tictoc)
     
-    
-    concat_df=pd.concat(df_main_list,axis=0,ignore_index=True)    
+    try:
+        concat_df=pd.concat(df_main_list,axis=0,ignore_index=True)
+    except:
+        raise Exception("Failed to concat main list. This means no meaningful data was received.")
+            
     converted_df=concat_df.drop('ZIP OR POSTAL CODE',axis=1).apply(lambda row:pd.to_numeric(row,errors='ignore'))
     converted_df.insert(6,'ZIP OR POSTAL CODE',concat_df['ZIP OR POSTAL CODE'].astype(str))
     converted_df.insert(1, 'TimeStamp', time_stamp)

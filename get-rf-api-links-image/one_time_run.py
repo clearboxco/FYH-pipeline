@@ -64,13 +64,10 @@ if __name__ == "__main__":
                                 (scraper.zip_database['type']=='STANDARD')&
                                 (scraper.zip_database['irs_estimated_population']>0)]
     
-    df1,df2,df3=np.array_split(filtered,3)
-    
-    df1_1,df1_2=np.array_split(df1,2)
-    df2_1,df2_2=np.array_split(df2,2)
+    df1,df2,df3,df4,df5=np.array_split(filtered,5)
 
     
-    zip_arrays={"1":df1_1,"2":df1_2,"3":df1_2,"4":df2_2,"5":df3}
+    zip_arrays={"1":df1,"2":df2,"3":df3,"4":df4,"5":df5}
     
     zip_codes=list(zip_arrays[choice]['zip'])
     
