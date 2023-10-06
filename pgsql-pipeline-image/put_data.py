@@ -1,6 +1,7 @@
 # IMPORTS
 import os
 import sys
+import json
 
 import pandas as pd
 import numpy as np
@@ -23,13 +24,37 @@ if __name__=="__main__":
         
     #1B: Applying conceptual adjustments
     
-    df=df.applymap(lambda x: np.nan if (x=='nan') or (x=="") else x)
+    df=df.map(lambda x: np.nan if (x=='nan') or (x=="") else x)
 
     prop_types=['Single Family Residential', 'Mobile/Manufactured Home','Townhouse', 'Multi-Family (2-4 Unit)', 'Condo/Co-op','Multi-Family (5+ Unit)']
 
     df=df[df['PROPERTY TYPE'].isin(prop_types)]
 
     df=df.dropna(subset=['ADDRESS','CITY','STATE OR PROVINCE','ZIP OR POSTAL CODE','PROPERTY TYPE','PRICE','BEDS','BATHS','SQUARE FEET','YEAR BUILT','URL (SEE https://www.redfin.com/buy-a-home/comparative-market-analysis FOR INFO ON PRICING)'],axis=0)
+    
+    def extract_zip(zip:str):
+        
+        # Hm... bit error prone you'd think
+        
+        zip=zip.strip()
+        return zip[0:5]
+        
+    df['ZIP OR POSTAL CODE']=df['ZIP OR POSTAL CODE'].map(lambda x: extract_zip(x))
+    
+    
+    
+    with open('conversion.json','r') as f:
+        zip_city_mapping=json.load(f)
+        
+    def assign_city(row):
+        try:
+            return zip_city_mapping[row['ZIP OR POSTAL CODE']]
+        except:
+            return row['CITY']
+        
+    df['CITY']=df[['CITY','ZIP OR POSTAL CODE']].apply(lambda row: assign_city(row),axis=1)
+    
+    
     
     #1C: Apply logical adjustments
     
@@ -77,15 +102,6 @@ if __name__=="__main__":
     df[sql_columns[2]]=pd.to_datetime(df[sql_columns[2]],errors='coerce',format="mixed")
     df[sql_columns[20]]=pd.to_datetime(df[sql_columns[20]],errors='coerce',format="mixed")
     df[sql_columns[19]]=pd.to_datetime(df[sql_columns[19]],errors='coerce',format="mixed")
-            
-    def extract_zip(zip:str):
-        
-        # Hm... bit error prone you'd think
-        
-        zip=zip.strip()
-        return zip[0:5]
-        
-    df[sql_columns[7]]=df[sql_columns[7]].map(lambda x: extract_zip(x))
     
     df=df.drop_duplicates(subset=[sql_columns[7],sql_columns[4]]).reset_index(drop=True)
     
