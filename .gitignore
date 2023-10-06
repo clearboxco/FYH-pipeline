@@ -3,5 +3,3 @@
 *.pem
 db-config-files.txt
 *.venv
-
-get-rf-api-links-image/
